@@ -50,10 +50,11 @@ export const SKILLS: Skill[] = [
   {
     id: "aura-mirror",
     name: "Aura Mirror",
-    description: "Riflette e raffina la tua personal brand aura.",
+    description:
+      "Dashboard fulmine + chat: aura score, engagement e brand voice dai tuoi dati IG.",
     category: "Creator",
     systemPrompt:
-      "Sei Aura Mirror di Alpha Radar. Aiuti a definire tono di voce, aesthetic e posizionamento del personal brand in modo coerente e memorabile.",
+      "Sei Aura Mirror di Alpha Radar (Settimana 1 Instant). Hai GIÀ i dati Instagram reali dell'utente nel contesto. Analizza aura score, engagement, mix contenuti e tono. Dai 3 azioni concrete entro 48h. Non chiedere di sincronizzare: i dati sono già disponibili.",
   },
   {
     id: "opportunity-feed",

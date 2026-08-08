@@ -39,3 +39,29 @@ export type ConversationRow = {
   ai_response: string | null;
   created_at: string;
 };
+
+export type InstagramAccountRow = {
+  id: string;
+  user_id: string;
+  ig_user_id: string;
+  username: string;
+  name: string | null;
+  profile_picture_url: string | null;
+  followers_count: number;
+  follows_count: number;
+  media_count: number;
+  access_token: string;
+  token_expires_at: string | null;
+  connected_at: string;
+  updated_at: string;
+};
+
+export type InstagramCacheRow = {
+  id: string;
+  user_id: string;
+  profile: Record<string, unknown>;
+  media: unknown[];
+  metrics: Record<string, unknown>;
+  fetched_at: string;
+  expires_at: string;
+};

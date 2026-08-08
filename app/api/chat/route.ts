@@ -3,6 +3,10 @@ import { NextRequest } from "next/server";
 import { getSession } from "@/lib/auth";
 import { getSkillById } from "@/lib/skills";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import {
+  buildClaudeIgContext,
+  getCachedSnapshot,
+} from "@/lib/instagram-cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,7 +16,15 @@ type ChatBody = {
   skillId?: string;
 };
 
+/**
+ * Chat API — target first token < 3s.
+ * - Instagram data SOLO da cache (0 Meta calls)
+ * - Insert conversation in parallelo allo stream start
+ * - max_tokens contenuto per TTFT più basso
+ */
 export async function POST(req: NextRequest) {
+  const t0 = Date.now();
+
   try {
     const session = await getSession();
     if (!session) {
@@ -52,30 +64,42 @@ export async function POST(req: NextRequest) {
 
     const supabase = getSupabaseAdmin();
 
-    const { data: conversation, error: insertError } = await supabase
-      .from("conversations")
-      .insert({
-        user_id: session.userId,
-        skill_id: skillId,
-        user_message: userMessage,
-        ai_response: null,
-      })
-      .select("id")
-      .single();
+    // Parallel: cache IG (istantanea) + insert conversation stub
+    const [igSnapshot, insertResult] = await Promise.all([
+      session.categoria === "Creator"
+        ? getCachedSnapshot(session.userId)
+        : Promise.resolve(null),
+      supabase
+        .from("conversations")
+        .insert({
+          user_id: session.userId,
+          skill_id: skillId,
+          user_message: userMessage,
+          ai_response: null,
+        })
+        .select("id")
+        .single(),
+    ]);
 
-    if (insertError || !conversation) {
-      console.error("Conversation insert error:", insertError);
+    if (insertResult.error || !insertResult.data) {
+      console.error("Conversation insert error:", insertResult.error);
       return Response.json(
         { error: "Impossibile salvare il messaggio" },
         { status: 500 }
       );
     }
 
+    const conversationId = insertResult.data.id;
+    const igContext =
+      igSnapshot != null
+        ? buildClaudeIgContext(igSnapshot)
+        : "Nessun dato Instagram (categoria non Creator).";
+
     const anthropic = new Anthropic({ apiKey });
 
     const stream = await anthropic.messages.stream({
       model: "claude-sonnet-4-6",
-      max_tokens: 2048,
+      max_tokens: 1024,
       system: `${skill.systemPrompt}
 
 Contesto utente:
@@ -83,9 +107,14 @@ Contesto utente:
 - Categoria: ${session.categoria}
 - Piano: ${session.piano}
 
-Rispondi in italiano, in modo chiaro, strutturato e actionable. Sei parte di Alpha Radar.`,
+${igContext}
+
+Hai i dati utente SUBITO dalla cache (non aspettare sync). Usa i numeri reali.
+Rispondi in italiano, chiaro, actionable, conciso. Sei Alpha Radar Settimana 1.`,
       messages: [{ role: "user", content: userMessage }],
     });
+
+    console.log(`[chat] stream ready in ${Date.now() - t0}ms`);
 
     const encoder = new TextEncoder();
     let fullResponse = "";
@@ -104,25 +133,24 @@ Rispondi in italiano, in modo chiaro, strutturato e actionable. Sei parte di Alp
             }
           }
 
-          await supabase
+          // Persist non-blocking rispetto alla UX (dopo stream)
+          void supabase
             .from("conversations")
             .update({ ai_response: fullResponse })
-            .eq("id", conversation.id);
+            .eq("id", conversationId);
 
           controller.close();
         } catch (err) {
           console.error("Stream error:", err);
-          const message =
-            err instanceof Error ? err.message : "Errore streaming Claude";
-
           if (fullResponse) {
-            await supabase
+            void supabase
               .from("conversations")
               .update({ ai_response: fullResponse })
-              .eq("id", conversation.id);
+              .eq("id", conversationId);
           }
-
-          controller.error(err instanceof Error ? err : new Error(message));
+          controller.error(
+            err instanceof Error ? err : new Error("Errore streaming Claude")
+          );
         }
       },
     });
@@ -131,7 +159,8 @@ Rispondi in italiano, in modo chiaro, strutturato e actionable. Sei parte di Alp
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-cache, no-transform",
-        "X-Conversation-Id": conversation.id,
+        "X-Conversation-Id": conversationId,
+        "X-Response-Start-Ms": String(Date.now() - t0),
       },
     });
   } catch (err) {
