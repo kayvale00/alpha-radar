@@ -108,7 +108,7 @@ export function ChatInterface({
               {skillName}
             </p>
             <p className="mt-2 max-w-sm text-white/50">
-              Fai una domanda per attivare il radar. Le risposte sono generate da Alpha Radar.
+              Fai una domanda per attivare il radar. Le risposte sono generate da Alpha.
             </p>
           </div>
         )}
@@ -136,7 +136,7 @@ export function ChatInterface({
         ))}
 
         {loading && messages[messages.length - 1]?.content === "" && (
-          <LoadingSpinner label="Claude sta analizzando..." />
+          <LoadingSpinner label="Alpha Radar sta analizzando..." />
         )}
 
         <div ref={bottomRef} />
