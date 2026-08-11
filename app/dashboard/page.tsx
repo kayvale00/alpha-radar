@@ -92,7 +92,7 @@ export default async function DashboardPage({
                   <span className="text-neon-magenta text-sm">FULMINE</span>
                 </h2>
                 <p className="mt-1 text-sm text-white/50">
-                  Grafici dalla cache · Claude con i tuoi dati IG subito · zero
+                  Grafici dalla cache · Alpha Radar con i tuoi dati IG subito · zero
                   attese sync
                 </p>
               </div>
@@ -128,8 +128,13 @@ export default async function DashboardPage({
             </p>
           ) : (
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {skills.map((skill) => (
-                <SkillCard key={skill.id} skill={skill} />
+              {skills.map((skill, index) => (
+                <SkillCard 
+                  key={skill.id} 
+                  skill={skill} 
+                  index={index}
+                  isPro={session.piano === "Pro"}
+                />
               ))}
             </div>
           )}

@@ -34,7 +34,7 @@ export const PLANS: Record<PlanId, Plan> = {
     highlighted: true,
     features: [
       "Tutto di Standard",
-      "Priority response Claude",
+      "Priority response Alpha Radar",
       "Prompt avanzati per skill",
       "Export conversazioni",
       "Supporto prioritario",
