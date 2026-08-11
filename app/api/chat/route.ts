@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
         .from("conversations")
         .insert({
           user_id: session.userId,
-          skill_id: skillId,
+          skill: skillId,
           user_message: userMessage,
           ai_response: null,
         })
