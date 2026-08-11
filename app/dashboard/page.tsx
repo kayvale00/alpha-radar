@@ -97,9 +97,15 @@ export default async function DashboardPage({
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
-                <Link href="/dashboard/aura-mirror" className="btn-primary !px-5 !py-2.5 text-xs">
-                  Apri Aura Mirror
-                </Link>
+                {session.piano === "Pro" ? (
+                  <Link href="/dashboard/aura-mirror" className="btn-primary !px-5 !py-2.5 text-xs">
+                    Apri Aura Mirror
+                  </Link>
+                ) : (
+                  <button disabled className="btn-primary !px-5 !py-2.5 text-xs opacity-50 cursor-not-allowed">
+                    🔒 Upgrade to Pro
+                  </button>
+                )}
                 {!igConnected ? (
                   <Link href="/api/meta/connect" className="btn-secondary !px-5 !py-2.5 text-xs">
                     Collega Instagram
@@ -139,6 +145,35 @@ export default async function DashboardPage({
             </div>
           )}
         </div>
+
+        {session.piano === "Standard" && (
+          <div className="mt-12 neon-border bg-gradient-to-r from-neon-magenta/10 to-neon-cyan/10 p-6 sm:p-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="font-display text-lg font-bold text-white">
+                  Sblocca tutte le feature
+                </h3>
+                <p className="mt-1 text-sm text-white/60">
+                  Upgrade a Pro e accedi a tutte le 5 skill + Aura Mirror + social connect
+                </p>
+                <div className="mt-3 flex gap-4">
+                  <span className="font-display text-sm text-white/50">
+                    Standard: <span className="text-neon-green">€49/mese</span>
+                  </span>
+                  <span className="font-display text-sm text-white/50">
+                    Pro: <span className="text-neon-magenta font-bold">€97/mese</span>
+                  </span>
+                  <span className="font-display text-sm text-neon-cyan font-bold">
+                    +€48/mese
+                  </span>
+                </div>
+              </div>
+              <Link href="/checkout/pro" className="btn-primary !px-6 !py-3 whitespace-nowrap">
+                Upgrade Now
+              </Link>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
