@@ -42,16 +42,18 @@ function RegisterForm() {
         <input type="hidden" name="piano" value={plan} />
 
         <div>
-          <label htmlFor="nome" className="label-cyber">
+          <label htmlFor="name" className="label-cyber">
             Nome
           </label>
           <input
-            id="nome"
-            name="nome"
+            id="name"
+            name="name"
             type="text"
             required
+            minLength={2}
             className="input-cyber"
             placeholder="Il tuo nome"
+            autoComplete="name"
           />
         </div>
 
@@ -95,11 +97,8 @@ function RegisterForm() {
             name="categoria"
             required
             className="input-cyber"
-            defaultValue=""
+            defaultValue="Creator"
           >
-            <option value="" disabled>
-              Seleziona categoria
-            </option>
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {c}

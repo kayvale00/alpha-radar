@@ -36,11 +36,47 @@ export async function verifyPassword(
 export async function createSessionToken(
   payload: SessionPayload
 ): Promise<string> {
-  return new SignJWT({ ...payload })
+  return new SignJWT({
+    userId: payload.userId,
+    email: payload.email,
+    nome: payload.nome,
+    categoria: payload.categoria,
+    piano: payload.piano,
+  })
     .setProtectedHeader({ alg: "HS256" })
+    .setSubject(payload.userId)
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DAYS}d`)
     .sign(getJwtSecret());
+}
+
+function extractUserId(payload: Record<string, unknown>): string | null {
+  const raw =
+    payload.userId ?? payload.sub ?? payload.id ?? payload.user_id;
+
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    return raw.trim();
+  }
+  return null;
+}
+
+function parseSessionPayload(
+  payload: Record<string, unknown>
+): SessionPayload | null {
+  const userId = extractUserId(payload);
+  if (!userId) return null;
+
+  const email = payload.email;
+  if (typeof email !== "string" || !email.trim()) return null;
+
+  return {
+    userId,
+    email: email.trim(),
+    nome: typeof payload.nome === "string" ? payload.nome : "User",
+    categoria:
+      typeof payload.categoria === "string" ? payload.categoria : "Creator",
+    piano: typeof payload.piano === "string" ? payload.piano : "Standard",
+  };
 }
 
 export async function verifySessionToken(
@@ -48,13 +84,7 @@ export async function verifySessionToken(
 ): Promise<SessionPayload | null> {
   try {
     const { payload } = await jwtVerify(token, getJwtSecret());
-    return {
-      userId: payload.userId as string,
-      email: payload.email as string,
-      nome: payload.nome as string,
-      categoria: payload.categoria as string,
-      piano: payload.piano as string,
-    };
+    return parseSessionPayload(payload as Record<string, unknown>);
   } catch {
     return null;
   }
@@ -83,7 +113,14 @@ export async function clearSessionCookie() {
 export async function getSession(): Promise<SessionPayload | null> {
   const token = cookies().get(SESSION_COOKIE)?.value;
   if (!token) return null;
-  return verifySessionToken(token);
+
+  const session = await verifySessionToken(token);
+  if (!session?.userId) {
+    console.error("[auth] JWT valido ma userId mancante nel payload");
+    return null;
+  }
+
+  return session;
 }
 
 export async function requireSession(): Promise<SessionPayload> {

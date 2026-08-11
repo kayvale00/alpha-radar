@@ -108,7 +108,7 @@ export function ChatInterface({
               {skillName}
             </p>
             <p className="mt-2 max-w-sm text-white/50">
-              Fai una domanda per attivare il radar. Le risposte sono generate da Claude.
+              Fai una domanda per attivare il radar. Le risposte sono generate da Alpha Radar.
             </p>
           </div>
         )}
