@@ -18,7 +18,7 @@ export const PLANS: Record<PlanId, Plan> = {
     priceLabel: "€49",
     tagline: "Il radar essenziale per partire.",
     features: [
-      "Accesso a 5 skill della tua categoria",
+      "Accesso a 2 skill della tua categoria",
       "Chat AI illimitata (fair use)",
       "Cronologia conversazioni",
       "Aggiornamenti skill mensili",
