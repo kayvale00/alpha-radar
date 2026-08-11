@@ -31,6 +31,7 @@ export default async function AuraMirrorPage({
   if (session.categoria !== "Creator") redirect("/dashboard");
 
   const autoBg = searchParams.bg === "1" || searchParams.connected === "1";
+  const isPro = session.piano === "Pro";
 
   return (
     <div className="relative min-h-screen">
@@ -76,9 +77,28 @@ export default async function AuraMirrorPage({
           </div>
         )}
 
-        <Suspense fallback={<AuraSkeleton />}>
-          <AuraData userId={session.userId} autoBg={autoBg} />
-        </Suspense>
+        <div className={`relative ${!isPro ? 'blur-sm opacity-50' : ''}`}>
+          <Suspense fallback={<AuraSkeleton />}>
+            <AuraData userId={session.userId} autoBg={autoBg} />
+          </Suspense>
+        </div>
+
+        {!isPro && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div className="neon-border bg-cyber-card/90 p-8 text-center max-w-sm">
+              <p className="font-display text-lg font-bold text-white">🔒 Upgrade to Pro</p>
+              <p className="mt-3 text-sm text-white/70">
+                Aura Mirror è disponibile solo per i clienti Pro.
+              </p>
+              <Link 
+                href="/checkout/pro" 
+                className="mt-6 inline-block btn-primary !px-6 !py-3"
+              >
+                Upgrade Ora
+              </Link>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
