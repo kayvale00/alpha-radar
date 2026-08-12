@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { getSkillById } from "@/lib/skills";
+import { getSkillsByCategory } from "@/lib/skills";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { ChatInterface, ChatMessage } from "@/components/ChatInterface";
 
@@ -13,12 +13,11 @@ export default async function ChatSkillPage({ params }: Props) {
   const session = await getSession();
   if (!session) redirect("/auth/login");
 
-  const skill = getSkillById(params.skillId);
+  // Get skill from category
+  const skills = getSkillsByCategory(session.categoria);
+  const skill = skills.find((s) => s.id === params.skillId);
+  
   if (!skill) notFound();
-
-  if (skill.category !== session.categoria) {
-    redirect("/dashboard");
-  }
 
   let initialMessages: ChatMessage[] = [];
 
@@ -28,7 +27,7 @@ export default async function ChatSkillPage({ params }: Props) {
       .from("conversations")
       .select("id, user_message, ai_response, created_at")
       .eq("user_id", session.userId)
-      .eq("skill_id", skill.id)
+      .eq("skill", skill.id)
       .order("created_at", { ascending: true })
       .limit(50);
 
