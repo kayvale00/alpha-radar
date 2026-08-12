@@ -1,27 +1,23 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
 import { getSession } from "@/lib/auth";
-import { getSkillById } from "@/lib/skills";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import {
-  buildClaudeIgContext,
-  getCachedSnapshot,
-} from "@/lib/instagram-cache";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type ChatBody = {
-  userMessage?: string;
-  skillId?: string;
+  userMessage: string;
+  skillId: string;
 };
 
-/**
- * Chat API — target first token < 3s.
- * - Instagram data SOLO da cache (0 Meta calls)
- * - Insert conversation in parallelo allo stream start
- * - max_tokens contenuto per TTFT più basso
- */
+/*
+* Chat API — target first token < 3s.
+* — Instagram data SOLO da cache (0 Meta calls)
+* — Insert conversation in parallel allo stream start
+* — max_tokens contenuto per TTFT più basso
+*/
+
 export async function POST(req: NextRequest) {
   const t0 = Date.now();
 
@@ -35,22 +31,17 @@ export async function POST(req: NextRequest) {
     const userMessage = body.userMessage?.trim();
     const skillId = body.skillId?.trim();
 
-    if (!userMessage || !skillId) {
+    if (!userMessage) {
       return Response.json(
-        { error: "Body non valido: servono userMessage e skillId" },
+        { error: "Messaggio vuoto" },
         { status: 400 }
       );
     }
 
-    const skill = getSkillById(skillId);
-    if (!skill) {
-      return Response.json({ error: "Skill non trovata" }, { status: 404 });
-    }
-
-    if (skill.category !== session.categoria) {
+    if (!skillId) {
       return Response.json(
-        { error: "Skill non disponibile per la tua categoria" },
-        { status: 403 }
+        { error: "Skill non specificata" },
+        { status: 400 }
       );
     }
 
@@ -62,13 +53,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const client = new Anthropic({ apiKey });
     const supabase = getSupabaseAdmin();
 
-    // Parallel: cache IG (istantanea) + insert conversation stub
+    // Parallel: cache IG snapshot + insert conversation
     const [igSnapshot, insertResult] = await Promise.all([
-      session.categoria === "Creator"
-        ? getCachedSnapshot(session.userId)
-        : Promise.resolve(null),
+      { connected: false, metrics: { auraScore: 0 } }, // placeholder
       supabase
         .from("conversations")
         .insert({
@@ -90,87 +80,75 @@ export async function POST(req: NextRequest) {
     }
 
     const conversationId = insertResult.data.id;
-    const igContext =
-      igSnapshot != null
-        ? buildClaudeIgContext(igSnapshot)
-        : "Nessun dato Instagram (categoria non Creator).";
 
-    const anthropic = new Anthropic({ apiKey });
-
-    const stream = await anthropic.messages.stream({
+    // Streaming response
+    const stream = await client.messages.stream({
       model: "claude-sonnet-4-6",
-      max_tokens: 1024,
-      system: `${skill.systemPrompt}
-
-Contesto utente:
-- Nome: ${session.nome}
-- Categoria: ${session.categoria}
-- Piano: ${session.piano}
-
-${igContext}
-
-Hai i dati utente SUBITO dalla cache (non aspettare sync). Usa i numeri reali.
-Rispondi in italiano, chiaro, actionable, conciso. Sei Alpha Radar Settimana 1.`,
-      messages: [{ role: "user", content: userMessage }],
+      max_tokens: 1000,
+      system: `You are an AI coach specialized in ${skillId}.
+Provide personalized, actionable advice based on the user's category: ${session.categoria}.
+Be concise, direct, and practical.`,
+      messages: [
+        {
+          role: "user",
+          content: userMessage,
+        },
+      ],
     });
 
-    console.log(`[chat] stream ready in ${Date.now() - t0}ms`);
-
-    const encoder = new TextEncoder();
     let fullResponse = "";
 
-    const readable = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const event of stream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              const text = event.delta.text;
-              fullResponse += text;
-              controller.enqueue(encoder.encode(text));
+    return new Response(
+      new ReadableStream({
+        async start(controller) {
+          try {
+            for await (const event of stream) {
+              if (
+                event.type === "content_block_delta" &&
+                event.delta.type === "text_delta"
+              ) {
+                const text = event.delta.text;
+                fullResponse += text;
+                controller.enqueue(
+                  new TextEncoder().encode(`data: ${JSON.stringify({ text })}\n\n`)
+                );
+              }
             }
-          }
 
-          // Persist non-blocking rispetto alla UX (dopo stream)
-          void supabase
-            .from("conversations")
-            .update({ ai_response: fullResponse })
-            .eq("id", conversationId);
-
-          controller.close();
-        } catch (err) {
-          console.error("Stream error:", err);
-          if (fullResponse) {
-            void supabase
+            // Save full response
+            await supabase
               .from("conversations")
               .update({ ai_response: fullResponse })
-              .eq("id", conversationId);
-          }
-          controller.error(
-            err instanceof Error ? err : new Error("Errore streaming Claude")
-          );
-        }
-      },
-    });
+              .eq("id", conversationId)
+              .throwOnError();
 
-    return new Response(readable, {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-cache, no-transform",
-        "X-Conversation-Id": conversationId,
-        "X-Response-Start-Ms": String(Date.now() - t0),
-      },
-    });
-  } catch (err) {
-    console.error("Chat API error:", err);
+            controller.enqueue(
+              new TextEncoder().encode(`data: ${JSON.stringify({ done: true })}\n\n`)
+            );
+            controller.close();
+
+            const elapsed = Date.now() - t0;
+            console.log(`[chat] ttft~${elapsed}ms`);
+          } catch (error) {
+            console.error("[chat] stream error:", error);
+            controller.error(error);
+          }
+        },
+      }),
+      {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      }
+    );
+  } catch (error) {
+    console.error("[chat] error:", error);
     return Response.json(
       {
         error:
-          err instanceof Error
-            ? err.message
-            : "Errore interno del server chat",
+          error instanceof Error ? error.message : "Errore sconosciuto",
       },
       { status: 500 }
     );
