@@ -7,7 +7,8 @@ export interface Skill {
   category: string;
 }
 
-const creatorSkills: Skill[] = [
+const 
+creatorSkills: Skill[] = [
   {
     id: "trend-spotter",
     name: "Trend Spotter",
