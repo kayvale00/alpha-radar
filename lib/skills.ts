@@ -1,4 +1,4 @@
-
+export const CATEGORIES = ["Creator", "Trader", "E-commerce", "Startup", "Consulente"];
 
 export interface Skill {
   id: string;
@@ -7,8 +7,7 @@ export interface Skill {
   category: string;
 }
 
-const 
-creatorSkills: Skill[] = [
+const creatorSkills: Skill[] = [
   {
     id: "trend-spotter",
     name: "Trend Spotter",
