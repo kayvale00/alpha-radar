@@ -5,11 +5,12 @@ interface SkillCardProps {
   skill: Skill;
   index: number;
   isPro: boolean;
+  isExtreme?: boolean;
 }
 
-export function SkillCard({ skill, index, isPro }: SkillCardProps) {
+export function SkillCard({ skill, index, isPro, isExtreme = false }: SkillCardProps) {
   const isAura = skill.id === "aura-mirror";
-  const isLocked = !isPro && index >= 2; // Standard: solo primi 2 skill
+  const isLocked = !isPro && !isExtreme && index >= 2; // Standard: solo primi 2 skill
   
   const href = isAura
     ? "/dashboard/aura-mirror"

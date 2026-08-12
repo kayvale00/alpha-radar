@@ -1,12 +1,14 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
-import { getSkillsByCategory } from "@/lib/skills";
+import { getSkillsByCategory, getAllSkills } from "@/lib/skills";
 import { getCachedSnapshot } from "@/lib/instagram-cache";
 import { SkillCard } from "@/components/SkillCard";
 import { logoutAction } from "@/app/auth/actions";
 
 export const dynamic = "force-dynamic";
+
+const CATEGORIES = ["Creator", "Trader", "E-commerce", "Startup", "Consulente"];
 
 export default async function DashboardPage({
   searchParams,
@@ -16,7 +18,11 @@ export default async function DashboardPage({
   const session = await getSession();
   if (!session) redirect("/auth/login");
 
-  const skills = getSkillsByCategory(session.categoria);
+  const isExtreme = session.piano === "Extreme";
+  const skills = isExtreme 
+    ? getAllSkills() 
+    : getSkillsByCategory(session.categoria);
+  
   const isCreator = session.categoria === "Creator";
 
   let igConnected = false;
@@ -94,16 +100,20 @@ export default async function DashboardPage({
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
-                {session.piano === "Pro" ? (
-                  <Link href="/dashboard/aura-mirror" className="btn-primary !px-5 !py-2.5 text-xs">
-                    Apri Aura Mirror
-                  </Link>
-                ) : (
+                {session.piano === "Standard" ? (
                   <button disabled className="btn-primary !px-5 !py-2.5 text-xs opacity-50 cursor-not-allowed">
                     🔒 Upgrade to Pro
                   </button>
+                ) : (
+                  <Link href="/dashboard/aura-mirror" className="btn-primary !px-5 !py-2.5 text-xs">
+                    Apri Aura Mirror
+                  </Link>
                 )}
-                {!igConnected ? (
+                {session.piano === "Standard" ? (
+                  <button disabled className="btn-secondary !px-5 !py-2.5 text-xs opacity-50 cursor-not-allowed">
+                    🔒 Collega Instagram
+                  </button>
+                ) : !igConnected ? (
                   <Link href="/api/meta/connect" className="btn-secondary !px-5 !py-2.5 text-xs">
                     Collega Instagram
                   </Link>
@@ -122,24 +132,51 @@ export default async function DashboardPage({
             Le tue Skill
           </h2>
           <p className="mt-1 text-white/45">
-            Seleziona una skill per aprire la chat AI dedicata.
+            {isExtreme 
+              ? "Tutte le skill di tutte le categorie - accesso completo" 
+              : "Seleziona una skill per aprire la chat AI dedicata."}
           </p>
 
-          {skills.length === 0 ? (
-            <p className="mt-6 text-neon-magenta">
-              Nessuna skill trovata per la categoria &quot;{session.categoria}&quot;.
-            </p>
-          ) : (
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {skills.map((skill, index) => (
-                <SkillCard 
-                  key={skill.id} 
-                  skill={skill} 
-                  index={index}
-                  isPro={session.piano === "Pro"}
-                />
+          {isExtreme ? (
+            <div className="mt-6 space-y-8">
+              {CATEGORIES.map((category) => (
+                <div key={category}>
+                  <h3 className="font-display text-lg font-bold text-neon-cyan mb-4">
+                    {category.toUpperCase()}
+                  </h3>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {getSkillsByCategory(category).map((skill, index) => (
+                      <SkillCard 
+                        key={skill.id} 
+                        skill={skill} 
+                        index={index}
+                        isPro={true}
+                        isExtreme={true}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
+          ) : (
+            <>
+              {skills.length === 0 ? (
+                <p className="mt-6 text-neon-magenta">
+                  Nessuna skill trovata per la categoria &quot;{session.categoria}&quot;.
+                </p>
+              ) : (
+                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {skills.map((skill, index) => (
+                    <SkillCard 
+                      key={skill.id} 
+                      skill={skill} 
+                      index={index}
+                      isPro={session.piano === "Pro"}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -148,25 +185,54 @@ export default async function DashboardPage({
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="font-display text-lg font-bold text-white">
-                  Sblocca tutte le feature
+                  Upgrade a Pro
                 </h3>
                 <p className="mt-1 text-sm text-white/60">
-                  Upgrade a Pro e accedi a tutte le 5 skill + Aura Mirror + social connect
+                  Accedi a tutte le 5 skill della tua categoria + Aura Mirror + social connect
                 </p>
                 <div className="mt-3 flex gap-4">
                   <span className="font-display text-sm text-white/50">
-                    Standard: <span className="text-neon-green">€49/mese</span>
+                    Standard: <span className="text-neon-green">€29/mese</span>
                   </span>
                   <span className="font-display text-sm text-white/50">
-                    Pro: <span className="text-neon-magenta font-bold">€97/mese</span>
+                    Pro: <span className="text-neon-magenta font-bold">€59/mese</span>
                   </span>
                   <span className="font-display text-sm text-neon-cyan font-bold">
-                    +€48/mese
+                    +€30/mese
                   </span>
                 </div>
               </div>
               <Link href="/checkout/pro" className="btn-primary !px-6 !py-3 whitespace-nowrap">
-                Upgrade Now
+                Upgrade to Pro
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {session.piano === "Pro" && (
+          <div className="mt-12 neon-border bg-gradient-to-r from-neon-cyan/10 to-neon-magenta/10 p-6 sm:p-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="font-display text-lg font-bold text-white">
+                  Upgrade a Extreme
+                </h3>
+                <p className="mt-1 text-sm text-white/60">
+                  Accedi a TUTTE le skill di TUTTE le categorie + accesso completo
+                </p>
+                <div className="mt-3 flex gap-4">
+                  <span className="font-display text-sm text-white/50">
+                    Pro: <span className="text-neon-magenta">€59/mese</span>
+                  </span>
+                  <span className="font-display text-sm text-white/50">
+                    Extreme: <span className="text-neon-magenta font-bold">€99/mese</span>
+                  </span>
+                  <span className="font-display text-sm text-neon-cyan font-bold">
+                    +€40/mese
+                  </span>
+                </div>
+              </div>
+              <Link href="/checkout/extreme" className="btn-primary !px-6 !py-3 whitespace-nowrap">
+                Upgrade to Extreme
               </Link>
             </div>
           </div>

@@ -1,243 +1,195 @@
-export type Category =
-  | "Creator"
-  | "E-commerce"
-  | "Trader"
-  | "Startup"
-  | "Consulente";
+import { Skill } from "@/lib/skills";
 
-export type Skill = {
+export interface Skill {
   id: string;
   name: string;
   description: string;
-  category: Category;
-  systemPrompt: string;
-};
+  category: string;
+}
 
-export const CATEGORIES: Category[] = [
-  "Creator",
-  "E-commerce",
-  "Trader",
-  "Startup",
-  "Consulente",
-];
-
-export const SKILLS: Skill[] = [
-  // Creator
+const creatorSkills: Skill[] = [
   {
     id: "trend-spotter",
     name: "Trend Spotter",
-    description: "Individua trend emergenti prima che diventino mainstream.",
+    description: "Individua trend emergenti primo che diventino mainstream.",
     category: "Creator",
-    systemPrompt:
-      "Sei Trend Spotter di Alpha Radar. Aiuti creator a individuare trend emergenti su social, nicchie e formati. Sii concreto, data-driven e suggerisci azioni pratiche.",
   },
   {
     id: "caption-generator",
     name: "Caption Generator",
-    description: "Genera caption ad alto engagement per ogni piattaforma.",
+    description: "Genero caption ad alto engagement per ogni piattaforma.",
     category: "Creator",
-    systemPrompt:
-      "Sei Caption Generator di Alpha Radar. Scrivi caption persuasive, con hook forti, CTA e varianti per Instagram, TikTok, LinkedIn e YouTube.",
   },
   {
     id: "competitor-analyzer",
     name: "Competitor Analyzer",
     description: "Analizza competitor e trova gap di contenuto sfruttabili.",
     category: "Creator",
-    systemPrompt:
-      "Sei Competitor Analyzer di Alpha Radar. Analizzi i competitor di un creator, evidenzi punti di forza/debolezza e opportunità di differenziazione.",
   },
   {
-    id: "aura-mirror",
-    name: "Aura Mirror",
-    description:
-      "Dashboard fulmine + chat: aura score, engagement e brand voice dai tuoi dati IG.",
+    id: "momentum-signals",
+    name: "Momentum Signals",
+    description: "Identifica il momento giusto per postare e engagement max.",
     category: "Creator",
-    systemPrompt:
-      "Sei Aura Mirror di Alpha Radar (Settimana 1 Instant). Hai GIÀ i dati Instagram reali dell'utente nel contesto. Analizza aura score, engagement, mix contenuti e tono. Dai 3 azioni concrete entro 48h. Non chiedere di sincronizzare: i dati sono già disponibili.",
   },
   {
     id: "opportunity-feed",
     name: "Opportunity Feed",
     description: "Feed di opportunità: collab, brand deal e formati virali.",
     category: "Creator",
-    systemPrompt:
-      "Sei Opportunity Feed di Alpha Radar. Proponi opportunità concrete (collab, monetizzazione, formati) allineate al profilo del creator.",
   },
+];
 
-  // E-commerce
+const traderSkills: Skill[] = [
   {
-    id: "product-research",
-    name: "Product Research",
-    description: "Trova prodotti vincenti con domanda reale e margini sani.",
-    category: "E-commerce",
-    systemPrompt:
-      "Sei Product Research di Alpha Radar. Aiuti a validare prodotti e-commerce con domanda, competizione, margini e rischi di fornitura.",
-  },
-  {
-    id: "price-monitor",
-    name: "Price Monitor",
-    description: "Strategie di pricing e monitoraggio competitivo.",
-    category: "E-commerce",
-    systemPrompt:
-      "Sei Price Monitor di Alpha Radar. Consigli pricing dinamico, bundling e strategie competitive basate sul mercato.",
-  },
-  {
-    id: "trend-analysis",
-    name: "Trend Analysis",
-    description: "Analisi trend di nicchia e stagionalità prodotto.",
-    category: "E-commerce",
-    systemPrompt:
-      "Sei Trend Analysis di Alpha Radar. Interpreti trend di mercato e-commerce, stagionalità e segnali di domanda emergente.",
-  },
-  {
-    id: "conversion-analyzer",
-    name: "Conversion Analyzer",
-    description: "Ottimizza funnel e conversion rate del tuo store.",
-    category: "E-commerce",
-    systemPrompt:
-      "Sei Conversion Analyzer di Alpha Radar. Diagnostichi funnel e-commerce e proponi fix concreti su CRO, UX e messaging.",
-  },
-  {
-    id: "early-detection",
-    name: "Early Detection",
-    description: "Rileva opportunità di prodotto prima dei competitor.",
-    category: "E-commerce",
-    systemPrompt:
-      "Sei Early Detection di Alpha Radar. Individui segnali deboli di opportunità prodotto prima che saturino il mercato.",
-  },
-
-  // Trader
-  {
-    id: "market-signals",
-    name: "Market Signals",
-    description: "Segnali di mercato e setup operativi chiari.",
+    id: "trend-spotter",
+    name: "Trend Spotter",
+    description: "Individua trend di mercato emergenti prima della massa.",
     category: "Trader",
-    systemPrompt:
-      "Sei Market Signals di Alpha Radar. Fornisci analisi di setup di mercato, livelli chiave e scenari (non consulenza finanziaria personalizzata).",
-  },
-  {
-    id: "sentiment-analysis",
-    name: "Sentiment Analysis",
-    description: "Leggi il sentiment di mercato da news e social.",
-    category: "Trader",
-    systemPrompt:
-      "Sei Sentiment Analysis di Alpha Radar. Interpreti sentiment di mercato da news/social e traduci in bias operativo cautelativo.",
-  },
-  {
-    id: "news-feed",
-    name: "News Feed",
-    description: "Sintesi news macro e impatto sui mercati.",
-    category: "Trader",
-    systemPrompt:
-      "Sei News Feed di Alpha Radar. Sintetizzi news macro/finanziarie e spieghi possibili impatti di mercato in modo chiaro.",
-  },
-  {
-    id: "risk-calculator",
-    name: "Risk Calculator",
-    description: "Calcola rischio, size e gestione della posizione.",
-    category: "Trader",
-    systemPrompt:
-      "Sei Risk Calculator di Alpha Radar. Aiuti a calcolare position size, R:R e regole di risk management.",
-  },
-  {
-    id: "portfolio-analyzer",
-    name: "Portfolio Analyzer",
-    description: "Analizza esposizione, correlazioni e bilanciamento.",
-    category: "Trader",
-    systemPrompt:
-      "Sei Portfolio Analyzer di Alpha Radar. Valuti composizione di portafoglio, correlazioni e suggerisci bilanciamenti prudenti.",
-  },
-
-  // Startup
-  {
-    id: "business-model",
-    name: "Business Model",
-    description: "Progetta e stress-testa il tuo business model.",
-    category: "Startup",
-    systemPrompt:
-      "Sei Business Model di Alpha Radar. Aiuti founder a definire, validare e iterare business model canvas e unit economics.",
   },
   {
     id: "market-sizing",
     name: "Market Sizing",
-    description: "Stima TAM/SAM/SOM con metodo bottom-up.",
-    category: "Startup",
-    systemPrompt:
-      "Sei Market Sizing di Alpha Radar. Guida stime TAM/SAM/SOM rigorose, con ipotesi esplicite e range di confidenza.",
+    description: "Calcola potenziale di mercato e TAM/SAM/SOM.",
+    category: "Trader",
   },
   {
-    id: "competitor-research",
-    name: "Competitor Research",
-    description: "Mappa competitor, moat e positioning.",
-    category: "Startup",
-    systemPrompt:
-      "Sei Competitor Research di Alpha Radar. Analizzi competitor diretti/indiretti, moat e opportunità di positioning.",
+    id: "aura-mirror",
+    name: "Aura Mirror",
+    description: "Dashboard con sentiment di mercato e momentum real-time.",
+    category: "Trader",
   },
   {
-    id: "funding-tracker",
-    name: "Funding Tracker",
-    description: "Prepara fundraising e tracking investitori.",
-    category: "Startup",
-    systemPrompt:
-      "Sei Funding Tracker di Alpha Radar. Supporti fundraising: pitch narrative, metriche, pipeline investitori e timing round.",
+    id: "business-model-generator",
+    name: "Business Model Generator",
+    description: "Genera modelli di business per startup e scale-up.",
+    category: "Trader",
   },
   {
-    id: "go-to-market",
-    name: "Go-to-Market",
-    description: "Disegna una GTM strategy eseguibile.",
-    category: "Startup",
-    systemPrompt:
-      "Sei Go-to-Market di Alpha Radar. Progetti GTM strategy con canali, ICP, messaging e milestones di trazione.",
-  },
-
-  // Consulente
-  {
-    id: "market-research",
-    name: "Market Research",
-    description: "Ricerca di mercato actionable per i tuoi clienti.",
-    category: "Consulente",
-    systemPrompt:
-      "Sei Market Research di Alpha Radar. Produzi insight di mercato chiari e actionable per consulenti e i loro clienti.",
-  },
-  {
-    id: "pricing-optimizer",
-    name: "Pricing Optimizer",
-    description: "Ottimizza pricing di servizi e packaging.",
-    category: "Consulente",
-    systemPrompt:
-      "Sei Pricing Optimizer di Alpha Radar. Aiuti consulenti a definire pricing, value-based offers e upsell.",
-  },
-  {
-    id: "client-research",
-    name: "Client Research",
-    description: "Profila prospect e prepara discovery call.",
-    category: "Consulente",
-    systemPrompt:
-      "Sei Client Research di Alpha Radar. Aiuti a profilare clienti/prospect, pain points e script di discovery.",
-  },
-  {
-    id: "service-packaging",
-    name: "Service Packaging",
-    description: "Crea offerte e pacchetti di servizio vendibili.",
-    category: "Consulente",
-    systemPrompt:
-      "Sei Service Packaging di Alpha Radar. Progetti pacchetti di servizio chiari, scalabili e facili da vendere.",
-  },
-  {
-    id: "content-ideas",
-    name: "Content Ideas",
-    description: "Idee content per authority e lead generation.",
-    category: "Consulente",
-    systemPrompt:
-      "Sei Content Ideas di Alpha Radar. Generi idee content per posizionamento, authority e lead gen di consulenti.",
+    id: "caption-generator",
+    name: "Caption Generator",
+    description: "Crea messaggi di trading ad alto impatto psicologico.",
+    category: "Trader",
   },
 ];
 
-export function getSkillById(skillId: string): Skill | undefined {
-  return SKILLS.find((s) => s.id === skillId);
-}
+const ecommerceSkills: Skill[] = [
+  {
+    id: "market-sizing",
+    name: "Market Sizing",
+    description: "Analizza mercati nichia e stima potenziale di vendita.",
+    category: "E-commerce",
+  },
+  {
+    id: "caption-generator",
+    name: "Caption Generator",
+    description: "Crea copy persuasive che converte visitor in buyer.",
+    category: "E-commerce",
+  },
+  {
+    id: "competitor-analyzer",
+    name: "Competitor Analyzer",
+    description: "Analizza strategie di competitor e trova vantaggi.",
+    category: "E-commerce",
+  },
+  {
+    id: "business-model-generator",
+    name: "Business Model Generator",
+    description: "Disegna modelli di business sostenibili per e-shop.",
+    category: "E-commerce",
+  },
+  {
+    id: "momentum-signals",
+    name: "Momentum Signals",
+    description: "Identifica prodotti trending e stagioni di vendita.",
+    category: "E-commerce",
+  },
+];
+
+const startupSkills: Skill[] = [
+  {
+    id: "business-model-generator",
+    name: "Business Model Generator",
+    description: "Crea modelli di business scalabili da zero.",
+    category: "Startup",
+  },
+  {
+    id: "market-sizing",
+    name: "Market Sizing",
+    description: "Calcola TAM e opportunità di mercato per il tuo prodotto.",
+    category: "Startup",
+  },
+  {
+    id: "competitor-analyzer",
+    name: "Competitor Analyzer",
+    description: "Mappa competitor e identifica spazi vuoti di mercato.",
+    category: "Startup",
+  },
+  {
+    id: "trend-spotter",
+    name: "Trend Spotter",
+    description: "Scopri trend tecnologici e di mercato prima di altri.",
+    category: "Startup",
+  },
+  {
+    id: "opportunity-feed",
+    name: "Opportunity Feed",
+    description: "Feed di opportunità: partnership, funding e growth hacks.",
+    category: "Startup",
+  },
+];
+
+const consulenteSkills: Skill[] = [
+  {
+    id: "business-model-generator",
+    name: "Business Model Generator",
+    description: "Sviluppa strategie di business per clienti.",
+    category: "Consulente",
+  },
+  {
+    id: "competitor-analyzer",
+    name: "Competitor Analyzer",
+    description: "Analisi competitive dettagliate per posizionamento.",
+    category: "Consulente",
+  },
+  {
+    id: "market-sizing",
+    name: "Market Sizing",
+    description: "Valutazioni di mercato e sizing per consulenze.",
+    category: "Consulente",
+  },
+  {
+    id: "trend-spotter",
+    name: "Trend Spotter",
+    description: "Identifica trend e opportunità per clienti.",
+    category: "Consulente",
+  },
+  {
+    id: "momentum-signals",
+    name: "Momentum Signals",
+    description: "Timing di mercato e signal per decisioni strategiche.",
+    category: "Consulente",
+  },
+];
+
+const skillsByCategory: Record<string, Skill[]> = {
+  Creator: creatorSkills,
+  Trader: traderSkills,
+  "E-commerce": ecommerceSkills,
+  Startup: startupSkills,
+  Consulente: consulenteSkills,
+};
 
 export function getSkillsByCategory(category: string): Skill[] {
-  return SKILLS.filter((s) => s.category === category);
+  return skillsByCategory[category] || [];
+}
+
+export function getAllSkills(): Skill[] {
+  const allSkills: Skill[] = [];
+  
+  Object.values(skillsByCategory).forEach((skills) => {
+    allSkills.push(...skills);
+  });
+  
+  return allSkills;
 }
