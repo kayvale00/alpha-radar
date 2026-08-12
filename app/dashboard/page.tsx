@@ -62,10 +62,7 @@ export default async function DashboardPage({
         )}
 
         <div className="neon-border bg-cyber-card/60 p-5 sm:p-6 animate-fade-in">
-          <p className="font-display text-xs uppercase tracking-[0.3em] text-neon-cyan">
-            Dashboard · Week 1 Instant
-          </p>
-          <h1 className="mt-2 font-display text-2xl font-bold text-white sm:text-3xl">
+          <h1 className="font-display text-2xl font-bold text-white sm:text-3xl">
             Ciao, {session.nome}
           </h1>
           <div className="mt-4 flex flex-wrap gap-3">

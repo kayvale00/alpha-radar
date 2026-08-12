@@ -33,7 +33,7 @@ export const PLANS: Record<PlanId, Plan> = {
     tagline: "Massima copertura per professionisti.",
     highlighted: true,
     features: [
-      "Tutto di Standard",
+      "Tutte le funzioni operative",
       "Priority response Alpha Radar",
       "Prompt avanzati per skill",
       "Export conversazioni",
