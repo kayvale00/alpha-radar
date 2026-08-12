@@ -1,4 +1,4 @@
-import { Skill } from "@/lib/skills";
+
 
 export interface Skill {
   id: string;
